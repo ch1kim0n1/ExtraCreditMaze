@@ -15,20 +15,14 @@ public class ShortestPathMazeRunner {
     public static void main(String[] args) {
         int[][] maze = {
             {1, 0, 0, 0, 1},
-            {1, 1, 1, 1, 0},
+            {1, 1, 1, 0, 0},
             {0, 0, 1, 0, 1},
             {0, 1, 1, 1, 1},
             {0, 0, 1, 1, 1}
         };
-
-        ShortestPathMaze solver = new ShortestPathMaze(maze);
-        int shortestPath = solver.solve();
-        if (shortestPath == -1) {
-            System.out.println("no path");
-        } else {
-            System.out.println("shortest path of " + shortestPath);
-            solver.printPath(Integer.valueOf(shortestPath));
-        }
+        ShortestPathMaze shortestPathMaze = new ShortestPathMaze(maze);
+        int shortestPath = shortestPathMaze.shortestPath();
+        System.out.println("Shortest path of " + shortestPath);
+        shortestPathMaze.printSolvedMaze();
     }
-
 }

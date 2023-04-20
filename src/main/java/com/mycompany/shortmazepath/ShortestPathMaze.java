@@ -6,7 +6,9 @@ package com.mycompany.shortmazepath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -17,61 +19,80 @@ import java.util.stream.IntStream;
 public class ShortestPathMaze {
     private int[][] maze;
     private boolean[][] visited;
-    private int shortestPath;
+    private int[][] solvedMaze;
+    private int numRows, numCols;
+    private int[] rowOffsets = {-1, 0, 1, 0};
+    private int[] colOffsets = {0, 1, 0, -1};
 
     public ShortestPathMaze(int[][] maze) {
         this.maze = maze;
-        visited = new boolean[maze.length][maze[0].length];
-        shortestPath = Integer.MAX_VALUE;
+        numRows = maze.length;
+        numCols = maze[0].length;
+        visited = new boolean[numRows][numCols];
+        this.solvedMaze = new int[numRows][numCols];
     }
 
-    public int solve() {
-        explore(0, 0, 0, new ArrayList<>());
-        return shortestPath == Integer.MAX_VALUE ? -1 : shortestPath;
-    }
+    public int shortestPath() {
+        Queue<int[]> queue = new LinkedList<>();
+        queue.offer(new int[]{0, 0, 0}); // starting position with distance 0
+        visited[0][0] = true;
 
-    public void explore(int row, int col, int pathLength, List<int[]> path) {
-        if (col == maze[0].length - 1) {
-            // Reached the end column, update shortest path if necessary
-            if (pathLength + 1 < shortestPath) {
-                shortestPath = pathLength + 1;
-                printPath(path);
+        while (!queue.isEmpty()) {
+            int[] curr = queue.poll();
+            int row = curr[0];
+            int col = curr[1];
+            int dist = curr[2];
+
+            if (col == numCols - 1) {
+                markSolvedPath(row, col);
+                return dist + 1; // add 1 to include the last cell in the path
             }
-            return;
+
+            for (int i = 0; i < 4; i++) {
+                int newRow = row + rowOffsets[i];
+                int newCol = col + colOffsets[i];
+                if (isValid(newRow, newCol) && maze[newRow][newCol] == 1 && !visited[newRow][newCol]) {
+                    queue.offer(new int[]{newRow, newCol, dist + 1});
+                    visited[newRow][newCol] = true;
+                }
+            }
         }
 
-        visited[row][col] = true;
-        path.add(new int[]{row, col});
-
-        // Check all adjacent cells
-        if (row > 0 && maze[row - 1][col] == 1 && !visited[row - 1][col]) {
-            explore(row - 1, col, pathLength + 1, path);
-        }
-        if (row < maze.length - 1 && maze[row + 1][col] == 1 && !visited[row + 1][col]) {
-            explore(row + 1, col, pathLength + 1, path);
-        }
-        if (col > 0 && maze[row][col - 1] == 1 && !visited[row][col - 1]) {
-            explore(row, col - 1, pathLength + 1, path);
-        }
-        if (col < maze[0].length - 1 && maze[row][col + 1] == 1 && !visited[row][col + 1]) {
-            explore(row, col + 1, pathLength + 1, path);
-        }
-
-        visited[row][col] = false;
-        path.remove(path.size() - 1);
+        return -1; // no path found
     }
 
-    public void printPath(List<int[]> path) { //not working with runner, need to fix
-        for (int i = 0; i < maze.length; i++) {
-            for (int j = 0; j < maze[0].length; j++) {
-                if (maze[i][j] == 1 && !path.contains(i * maze[0].length + j)) {
-                    System.out.print("0 ");
-                } else {
-                    System.out.print("X ");
+    private boolean isValid(int row, int col) {
+        return row >= 0 && row < numRows && col >= 0 && col < numCols;
+    }
+    
+    private void markSolvedPath(int row, int col) {
+        while (col >= 0 && row >= 0 && col < numCols && row < numRows) {
+            solvedMaze[row][col] = 1;
+            int newRow = row;
+            int newCol = col;
+            for (int i = 0; i < 4; i++) {
+                int r = row + rowOffsets[i];
+                int c = col + colOffsets[i];
+                if (isValid(r, c) && maze[r][c] == 1 && visited[r][c] && solvedMaze[r][c] == 0) {
+                    newRow = r;
+                    newCol = c;
+                    break;
                 }
+            }
+            if (newRow == row && newCol == col) {
+                break;
+            }
+            row = newRow;
+            col = newCol;
+        }
+    }
+    
+    public void printSolvedMaze() {
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                System.out.print(solvedMaze[i][j] + " ");
             }
             System.out.println();
         }
-        System.out.println();
     }
 }
